@@ -23,6 +23,7 @@ import android.view.Display;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.Toast;
@@ -51,10 +52,37 @@ public class MainActivity extends AppCompatActivity {
         private long mLastT;
 
         //extras
-        private int lineWidth;
-        private int mazeSizeX, mazeSizeY;
-        float cellWidth, cellHeight;
-        float totalCellWidth, totalCellHeight;
+        boolean[][] verticalBounds = new boolean[][]{
+                {true, false, true, false, false, false,    false, false, true, false, true, false},
+                {true, false, false, true, true, false,     true,true, true, false, true, false},
+                {true, true, true, true, true, true,       true, true, false, true, false, true},
+                {true, false, true, true, true, false,      false, true, false, false, false, false},
+                {true, false, true, false, true, false,     false, false, false, false, false, true},
+                {true, true, false, true, true, true,       true, false, false, false, true, true},
+
+                {true, true, true, true, false, true,       true, true, false, true, false, true },
+                {true, false, true, true, false, true,      false, true, true, true, false, false },
+                {true, false, true, true, false, false,     true, false, true, false, false, false },
+                {true, false, true, false, false, true,     false, true, false, true, false, true },
+                {true, true, false, true, true, false,      true, true, false, true, true, false },
+                {true, false, false, true, false, false,    false, true, true, false, true, false }
+        };
+
+        boolean[][] horizontalBounds = new boolean[][]{
+                {true, false, true, false, true, true,          false, false, true, false, false, true},
+                {false, false, false, false, false, false,      false, false, false, false, false, false},
+                {false, true, false, false, true, false,       false, true, true, false, true, true},
+                {true, false, false, true, false, true,         true, true, true, true, true, false},
+                {false, true, true, false, false, false,        true, true, true, true, false, false},
+                {false, false, false, false, true, false,       false, true, false, false, false, false},
+
+                {true, false, false, true, false, true,         false, false, true, false, true, true },
+                {false, true, false, false, true, false,        true, false, false, true, true, false },
+                {true, false, false, true, true, true,          false, true, false, true, true, true },
+            {false, true, true, false, false, false,            true, false, true, false, false, false },
+                {false, true, false, false, true, true,         false, false, false, false, true, false },
+                {true, true, true, true, true, true,            true, true, true, true, true, true }
+        };
 
 
 
@@ -69,6 +97,8 @@ public class MainActivity extends AppCompatActivity {
         private float mSensorY;
         private float mHorizontalBound;
         private float mVerticalBound;
+        private float realHorizontalBound;
+        private float realVerticalBound;
 
         private final SistemaPartes mSistemaPartes;
 
@@ -111,6 +141,9 @@ public class MainActivity extends AppCompatActivity {
 
             mHorizontalBound = ((w / mMetersToPixelsX - sBallDiameter) * 0.5f);
             mVerticalBound = ((h / mMetersToPixelsY - sBallDiameter) * 0.5f);
+
+            realHorizontalBound = ((w / mMetersToPixelsX) * 0.5f);
+            realVerticalBound= ((h / mMetersToPixelsY) * 0.5f);
 
             a1= String.valueOf(mXOrigin)+ " " + String.valueOf(w) + " " + String.valueOf(mDstWidth) + " " + String.valueOf(mHorizontalBound);
         }
@@ -166,12 +199,37 @@ public class MainActivity extends AppCompatActivity {
                 sistemaPartes.mBalls[i].setTranslationY(y);
             }
             Paint myPaint = new Paint();
-            myPaint.setColor(Color.rgb(200, 15, 50));
-            myPaint.setStrokeWidth(10);
+            myPaint.setColor(Color.rgb(0, 0, 0));
+            myPaint.setStrokeWidth(25);
             myPaint.setStyle(Paint.Style.STROKE);
-            canvas.drawLine(100, 100, 100, 200, myPaint);
+            myPaint.setStrokeJoin(Paint.Join.ROUND);
+
 
             // CANVAS
+
+            float xmax = canvas.getWidth()/2;
+            float ymax = canvas.getHeight()/2;
+            int lineah = (int) (xmax/60f);
+            int lineav = (int) (ymax/60f);
+
+            //for vertical bounds
+            int yy = -60;
+            int xx;
+            for (int i = 11; i >= 0; i--) {
+                xx=-60;
+                for (int j = 0; j < 12; j++) {
+
+                        if (verticalBounds[i][j]){
+                            canvas.drawLine(xmax+lineah*xx, ymax-lineav*yy, xmax+lineah*xx, ymax-lineav*(yy+10), myPaint);
+                        }
+                        if (horizontalBounds[i][j]){
+                            canvas.drawLine(xmax+lineah*xx, ymax-lineav*yy, xmax+lineah*(xx+10), ymax-lineav*yy, myPaint);
+                        }
+                    xx+=10;
+                }
+                yy+=10;
+            }
+            //for vertical bounds end
 
 
 
@@ -216,69 +274,71 @@ public class MainActivity extends AppCompatActivity {
             }
 
             public void resolveCollisionWithBounds(){
-                final float xmax = mHorizontalBound;
-                final float ymax = mVerticalBound;
+                final float xmax = realHorizontalBound;
+                final float ymax = realVerticalBound;
                 final float x = mPosX;
                 final float y = mPosY;
 
-                float lineah = xmax/60f;
-                float lineav = ymax/60f;
+                float lineah = xmax/60;
+                float lineav = ymax/60;
                 /*float celdav = 7f*(xmax/62f);
                 float celdah = 7f*(ymax/62f);*/
 
-                if(x > xmax){
-                    mPosX = xmax;
+                if(x > mHorizontalBound){
+                    mPosX = mHorizontalBound;
                     mVelX = 0;
-                } else if (x < -xmax){
-                    mPosX = -xmax;
+                } else if (x < -mHorizontalBound){
+                    mPosX = -mHorizontalBound;
                     mVelX = 0;
                 }
-                if (y > ymax){
-                    mPosY = ymax;
+                if (y > mVerticalBound){
+                    mPosY = mVerticalBound;
                     mVelY = 0;
-                } else if(y < -ymax){
-                    mPosY = -ymax;
+                } else if(y < -mVerticalBound){
+                    mPosY = -mVerticalBound;
                     mVelY = 0;
                 }
 
-                if(y < lineav*51){
-                    if(x >= lineah*9){
-                        if (x < lineah*13){
-                            if (mVelX > 0){
-                                mPosX = lineah*9;
-                            }
-                            else if (mVelX < 0){
-                                mPosX = lineah*13;
-                            }
 
-                            mVelX = 0;
-                        }
+                //for vertical bounds
+                int yy = -60;
+                int xx;
+                for (int i = 11; i >= 0; i--) {
+                    xx = -60;
+                    for (int j = 0; j < 12; j++) {
+
+
+                            if (verticalBounds[i][j]){
+                                if(y > lineav*yy && y < lineav*(yy+10)){
+                                    if(x > lineah*(xx-3) && x < lineah*(xx+5)){
+                                        if (mVelX > 0){
+                                            mPosX = lineah * (xx-3);
+                                        }
+                                        else if (mVelX < 0){
+                                            mPosX = lineah * (xx+5);
+                                        }
+                                        mVelX = 0;
+                                    }
+                                }
+                            }
+                            if (horizontalBounds[i][j]){
+                                if(x > lineah*xx && x < lineah*(xx+10)){
+                                    if(y > lineav*(yy-3) && y < lineav*(yy+4)){
+                                        if (mVelY > 0){
+                                            mPosY = lineav * (yy-3);
+                                        }
+                                        else if (mVelY < 0){
+                                            mPosY = lineav * (yy+4);
+                                        }
+                                        mVelY = 0;
+                                    }
+                                }
+                            }
+                        xx+=10;
                     }
+                    yy+=10;
                 }
-
-                if(y > -lineav*51){
-                    if(x >= lineah*19){
-                        if (x < lineah*23){
-                            if (mVelX > 0){
-                                mPosX = lineah*19;
-                            }
-                            else if (mVelX < 0){
-                                mPosX = lineah*23;
-                            }
-
-                            mVelX = 0;
-                        }
-                    }
-                }
-
-                /*if(y < lineav*60 ){
-                    mPosY = lineav*60;
-                    if (y > lineav*69){
-                        mPosY = lineav*69;
-                    }
-                    mVelX = 0;
-                }*/
-
+                //for vertical bounds end
             }
         }
         //FIN CLASE PARTE
@@ -290,7 +350,7 @@ public class MainActivity extends AppCompatActivity {
             SistemaPartes() {
                 for (int i = 0; i < mBalls.length; i++) {
                     mBalls[i] = new Parte(getContext());
-                    mBalls[i].setBackgroundResource(R.drawable.pig);
+                    mBalls[i].setBackgroundResource(R.drawable.ball);
                     mBalls[i].setLayerType(LAYER_TYPE_HARDWARE, null);
                     addView(mBalls[i], new ViewGroup.LayoutParams(mDstWidth, mDstHeight));
                 }
@@ -299,7 +359,7 @@ public class MainActivity extends AppCompatActivity {
             private void updatePositions (float sx, float sy, long timestamp){
                 final long t = timestamp;
                 if(mLastT != 0){
-                    final float dT = (float) (t - mLastT) / 2000.f;
+                    final float dT = (float) (t - mLastT) / 1500.f;
                     final int count = mBalls.length;
                     for (int i = 0; i < count; i++){
                         Parte ball = mBalls[i];
@@ -380,7 +440,10 @@ public class MainActivity extends AppCompatActivity {
         mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK,getClass().getName());
         mSimulationView = new VistaSimulacion(this);
         mSimulationView.setBackgroundResource(R.drawable.space2);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(mSimulationView);
+
         //setContentView(R.layout.activity_main);
     }
 
@@ -389,7 +452,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         mWakeLock.acquire();
         mSimulationView.startSimulation();
-        Toast.makeText(MainActivity.this, a1, Toast.LENGTH_LONG).show();
+        //Toast.makeText(MainActivity.this, a1, Toast.LENGTH_LONG).show();
     }
 
     @Override
