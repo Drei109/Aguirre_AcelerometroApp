@@ -1,4 +1,4 @@
-package com.example.usuarioupt.aguirre_acelerometroapp;
+package com.example.usuarioupt.aguirre_laberintoapp;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -11,10 +11,8 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.PowerManager;
-import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.StyleRes;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.AttributeSet;
@@ -37,7 +35,6 @@ public class MainActivity extends AppCompatActivity {
     private Display mDisplay;
     private PowerManager.WakeLock mWakeLock;
 
-    public String a1= "";
     public class VistaSimulacion extends FrameLayout implements SensorEventListener{
 
 
@@ -145,7 +142,6 @@ public class MainActivity extends AppCompatActivity {
             realHorizontalBound = ((w / mMetersToPixelsX) * 0.5f);
             realVerticalBound= ((h / mMetersToPixelsY) * 0.5f);
 
-            a1= String.valueOf(mXOrigin)+ " " + String.valueOf(w) + " " + String.valueOf(mDstWidth) + " " + String.valueOf(mHorizontalBound);
         }
 
         @Override
@@ -281,8 +277,6 @@ public class MainActivity extends AppCompatActivity {
 
                 float lineah = xmax/60;
                 float lineav = ymax/60;
-                /*float celdav = 7f*(xmax/62f);
-                float celdah = 7f*(ymax/62f);*/
 
                 if(x > mHorizontalBound){
                     mPosX = mHorizontalBound;
@@ -299,6 +293,16 @@ public class MainActivity extends AppCompatActivity {
                     mVelY = 0;
                 }
 
+            }
+
+            public void resolveCollisionWithWalls(){
+                final float xmax = realHorizontalBound;
+                final float ymax = realVerticalBound;
+                final float x = mPosX;
+                final float y = mPosY;
+
+                float lineah = xmax/60;
+                float lineav = ymax/60;
 
                 //for vertical bounds
                 int yy = -60;
@@ -308,37 +312,53 @@ public class MainActivity extends AppCompatActivity {
                     for (int j = 0; j < 12; j++) {
 
 
-                            if (verticalBounds[i][j]){
-                                if(y > lineav*yy && y < lineav*(yy+10)){
-                                    if(x > lineah*(xx-3) && x < lineah*(xx+5)){
-                                        if (mVelX > 0){
-                                            mPosX = lineah * (xx-3);
-                                        }
-                                        else if (mVelX < 0){
-                                            mPosX = lineah * (xx+5);
-                                        }
-                                        mVelX = 0;
+                        if (verticalBounds[i][j]){
+                            if(y > lineav*yy && y < lineav*(yy+10)){
+                                if(x > lineah*(xx-3) && x < lineah*(xx+5)){
+                                    if (mVelX > 0){
+                                        mPosX = lineah * (xx-3);
                                     }
+                                    else if (mVelX < 0){
+                                        mPosX = lineah * (xx+5);
+                                    }
+                                    mVelX = 0;
                                 }
                             }
-                            if (horizontalBounds[i][j]){
-                                if(x > lineah*xx && x < lineah*(xx+10)){
-                                    if(y > lineav*(yy-3) && y < lineav*(yy+4)){
-                                        if (mVelY > 0){
-                                            mPosY = lineav * (yy-3);
-                                        }
-                                        else if (mVelY < 0){
-                                            mPosY = lineav * (yy+4);
-                                        }
-                                        mVelY = 0;
+                        }
+                        if (horizontalBounds[i][j]){
+                            if(x > lineah*xx && x < lineah*(xx+10)){
+                                if(y > lineav*(yy-3) && y < lineav*(yy+4)){
+                                    if (mVelY > 0){
+                                        mPosY = lineav * (yy-3);
                                     }
+                                    else if (mVelY < 0){
+                                        mPosY = lineav * (yy+4);
+                                    }
+                                    mVelY = 0;
                                 }
                             }
+                        }
                         xx+=10;
                     }
                     yy+=10;
                 }
-                //for vertical bounds end
+            }
+
+            public void checkWin(){
+                final float xmax = realHorizontalBound;
+                final float ymax = realVerticalBound;
+                final float x = mPosX;
+                final float y = mPosY;
+
+                float lineah = xmax/60;
+                float lineav = ymax/60;
+
+                if(y < lineav*-50 && y > lineav*-60 ){
+                    if(x < lineah*-50 && x > lineah*-60){
+                        mSimulationView.stopSimulation();
+                        Toast.makeText(MainActivity.this, "¡Ganaste!", Toast.LENGTH_LONG).show();
+                    }
+                }
             }
         }
         //FIN CLASE PARTE
@@ -406,6 +426,8 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                         curr.resolveCollisionWithBounds();
+                        curr.resolveCollisionWithWalls();
+                        curr.checkWin();
                     }
                 }
 
@@ -439,7 +461,7 @@ public class MainActivity extends AppCompatActivity {
         // Se crea un WakeLock
         mWakeLock = mPowerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK,getClass().getName());
         mSimulationView = new VistaSimulacion(this);
-        mSimulationView.setBackgroundResource(R.drawable.space2);
+        mSimulationView.setBackgroundResource(R.drawable.space3);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(mSimulationView);

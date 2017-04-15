@@ -1,4 +1,4 @@
-package com.example.usuarioupt.aguirre_acelerometroapp;
+package com.example.usuarioupt.aguirre_laberintoapp;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

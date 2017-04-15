@@ -1,4 +1,4 @@
-package com.example.usuarioupt.aguirre_acelerometroapp;
+package com.example.usuarioupt.aguirre_laberintoapp;
 
 import org.junit.Test;
 
